@@ -16,7 +16,7 @@ $app->get('/list_comments', function (Request $request, Response $response, $arg
     while($row = $result->fetch_assoc()){
         array_push($data,$row);
     }
-    $json = json_encode($data);
+    $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     $response->getBody()->write($json);
     return $response->withHeader('Content-Type', 'application/json');
 });
@@ -39,7 +39,7 @@ $app->get('/list_comment/id_image/{id_image}', function (Request $request, Respo
     while($row = $result->fetch_assoc()){
         array_push($data,$row);
     }
-    $json = json_encode($data);
+    $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     $response->getBody()->write($json);
     return $response->withHeader('Content-Type', 'application/json');
     
@@ -67,4 +67,24 @@ $app->get('/list_comment/id_image/count/{id_image}', function (Request $request,
     $response->getBody()->write($json);
     return $response->withHeader('Content-Type', 'application/json');
     
+});
+
+$app->post('/list_comment', function (Request $request, Response $response, $args) {
+    $json = $request->getBody();
+    $jsonData = json_decode($json, true);
+
+    $conn = $GLOBALS['dbconn'];
+    $sql = 'insert into list_comment (id_image,id_account, description) values (?, ?, ?)';
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param('iis',$jsonData['id_image'], $jsonData['id_account'],  $jsonData['description']);
+    $stmt->execute();
+    $affected = $stmt->affected_rows;
+    if ($affected > 0) {
+
+        $data = ["affected_rows" => $affected, "last_idx" => $conn->insert_id];
+        $response->getBody()->write(json_encode($data));
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(200);
+    }
 });

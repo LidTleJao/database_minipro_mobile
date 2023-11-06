@@ -8,17 +8,14 @@ $app->get('/list_images', function (Request $request, Response $response, $args)
 
     $sql = "select list_image.id, Account.id as id_account, Account.name, Account.image
             , list_image.url, list_image.detail,type_image.id as id_type, type_image.name_type
-            ,count(list_comment.id_account) as count_comment,count(list_like.id_account) as count_like
             from list_image 
             inner join Account
             on    list_image.id_account = Account.id
             inner join type_image
             on    list_image.type_image = type_image.id
-            inner join list_comment
-            on    list_image.id = list_comment.id_image
-            inner join list_like
-            on    list_image.id = list_like.id_image
-            Group by list_image.id";
+            "
+            ;
+    // $sql = "SELECT * FROM list_image ";
     $result = $conn->query($sql);
     
     $data = array();
@@ -44,7 +41,7 @@ $app->get('/list_image/id_img/{id}', function (Request $request, Response $respo
     while($row = $result->fetch_assoc()){
         array_push($data,$row);
     }
-    $json = json_encode($data);
+    $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     $response->getBody()->write($json);
     return $response->withHeader('Content-Type', 'application/json');
     
@@ -102,9 +99,9 @@ $app->put('/list_image/{id}', function (Request $request, Response $response, $a
     $jsonData = json_decode($json, true);
     $id = $args['id'];
     $conn = $GLOBALS['dbconn'];
-    $sql = 'update list_image set detail=?, type_image=? where id = ?';
+    $sql = 'update list_image set detail=? where id = ?';
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param('sii', $jsonData['detail'], $jsonData['type_image'], $id);
+    $stmt->bind_param('sii', $jsonData['detail'], $id);
     $stmt->execute();
     $affected = $stmt->affected_rows;
     if ($affected > 0) {

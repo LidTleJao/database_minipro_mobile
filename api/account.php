@@ -13,7 +13,7 @@ $app->get('/accounts', function (Request $request, Response $response, $args){
     while($row = $result->fetch_assoc()){
         array_push($data,$row);
     }
-    $json = json_encode($data);
+    $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     $response->getBody()->write($json);
     return $response->withHeader('Content-Type', 'application/json');
     
